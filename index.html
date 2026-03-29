@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>For My Love ❤️</title>
@@ -7,10 +7,10 @@
 <style>
 body {
     margin: 0;
-    font-family: sans-serif;
-    text-align: center;
+    font-family: 'Segoe UI', sans-serif;
     background: black;
     color: white;
+    text-align: center;
     overflow: hidden;
 }
 
@@ -23,41 +23,46 @@ body {
     z-index: -1;
 }
 
-.screen {
-    display: none;
-    padding: 20px;
+/* Hearts */
+.heart {
+    position: fixed;
+    color: pink;
+    animation: floatUp 6s linear infinite;
 }
+@keyframes floatUp {
+    from { transform: translateY(100vh); }
+    to { transform: translateY(-10vh); }
+}
+
+.screen { display: none; padding: 20px; }
 .active { display: block; }
 
 .box {
     background: rgba(0,0,0,0.6);
     padding: 20px;
     border-radius: 20px;
-    max-width: 400px;
+    max-width: 350px;
     margin: auto;
+    box-shadow: 0 0 20px rgba(255,0,100,0.5);
 }
 
-/* Puzzle */
+/* 3x3 Puzzle */
 #puzzle {
     width: 300px;
     height: 300px;
-    margin: 20px auto;
+    margin: auto;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2px;
+    grid-template-columns: repeat(3,1fr);
+    gap: 3px;
 }
 
 .tile {
-    width: 100%;
-    height: 100%;
     background-image: url('photo.jpg');
     background-size: 300px 300px;
-    cursor: pointer;
+    transition: 0.2s;
 }
-
-.empty {
-    background: transparent;
-}
+.tile:active { transform: scale(0.95); }
+.empty { background: transparent; }
 
 /* Buttons */
 button {
@@ -86,101 +91,122 @@ canvas {
 <canvas id="fireworks"></canvas>
 
 <audio id="music" loop>
-    <source src="music.mp3">
+<source src="music.mp3">
 </audio>
 
-<!-- 🧩 PUZZLE -->
+<!-- Floating hearts -->
+<script>
+setInterval(()=>{
+    let h=document.createElement("div");
+    h.className="heart";
+    h.innerHTML="❤️";
+    h.style.left=Math.random()*100+"vw";
+    h.style.fontSize=(10+Math.random()*20)+"px";
+    document.body.appendChild(h);
+    setTimeout(()=>h.remove(),6000);
+},400);
+</script>
+
+<!-- PUZZLE -->
 <div id="screen1" class="screen active">
-    <div class="box">
-        <h3>Solve this ❤️</h3>
-        <div id="puzzle"></div>
-    </div>
+<div class="box">
+<h3>Solve this ❤️</h3>
+<div id="puzzle"></div>
+</div>
 </div>
 
-<!-- 💌 MESSAGE -->
+<!-- MESSAGE -->
 <div id="screen2" class="screen">
-    <div class="box">
-        <p id="typed"></p>
-        <button onclick="goQuestion()">Continue ❤️</button>
-    </div>
+<div class="box">
+<p id="typed"></p>
+<button onclick="goQ()">Continue ❤️</button>
+</div>
 </div>
 
-<!-- ❓ QUESTION -->
+<!-- QUESTION -->
 <div id="screen3" class="screen">
-    <div class="box">
-        <p>
-        I already know my answer…<br><br>
-        but will you be mine<br>
-        for a long, long time? ❤️
-        </p>
-        <button id="yesBtn" onclick="yes()">YES ❤️</button>
-        <button id="noBtn">NO 😏</button>
-    </div>
+<div class="box">
+<p>
+I already know my answer…<br><br>
+but will you be mine<br>
+for a long, long time? ❤️
+</p>
+<button id="yesBtn" onclick="yes()">YES ❤️</button>
+<button id="noBtn">NO 😏</button>
+</div>
 </div>
 
-<!-- 🎉 FINAL -->
+<!-- FINAL -->
 <div id="screen4" class="screen">
-    <div class="box">
-        <h2>You chose me ❤️</h2>
-        <p>Happy 4 months 🫶</p>
-    </div>
+<div class="box">
+<h2>You chose me ❤️</h2>
+<p>
+Happy 4 months my love 🫶<br><br>
+I’ll choose you every day 💫
+</p>
+</div>
 </div>
 
 <script>
-/* 🎵 MUSIC */
-document.body.addEventListener("click", () => {
-    document.getElementById("music").play();
-}, { once: true });
+/* MUSIC */
+document.body.onclick=()=>music.play();
 
-/* 🧩 PUZZLE */
-let puzzle = document.getElementById("puzzle");
-let tiles = [...Array(15).keys()].map(x => x+1);
-tiles.push(null);
+/* 3x3 PUZZLE */
+let tiles=[1,2,3,4,5,6,7,8,null];
 
-function drawPuzzle() {
-    puzzle.innerHTML = "";
-    tiles.forEach((num, i) => {
-        let div = document.createElement("div");
-        div.className = "tile";
-        if (!num) div.classList.add("empty");
+function shuffle(){
+    do{
+        tiles.sort(()=>Math.random()-0.5);
+    }while(!solvable());
+}
+function solvable(){
+    let inv=0;
+    for(let i=0;i<8;i++)
+    for(let j=i+1;j<9;j++)
+    if(tiles[i]&&tiles[j]&&tiles[i]>tiles[j]) inv++;
+    return inv%2===0;
+}
+shuffle();
 
-        if (num) {
-            let x = (num-1)%4;
-            let y = Math.floor((num-1)/4);
-            div.style.backgroundPosition = `${-x*75}px ${-y*75}px`;
+function draw(){
+    puzzle.innerHTML="";
+    tiles.forEach((n,i)=>{
+        let d=document.createElement("div");
+        d.className="tile";
+        if(!n)d.classList.add("empty");
+
+        if(n){
+            let x=(n-1)%3,y=Math.floor((n-1)/3);
+            d.style.backgroundPosition=`${-x*100}px ${-y*100}px`;
         }
 
-        div.onclick = () => moveTile(i);
-        puzzle.appendChild(div);
+        d.onclick=()=>move(i);
+        puzzle.appendChild(d);
     });
 }
+draw();
 
-function moveTile(i) {
-    let empty = tiles.indexOf(null);
-    let valid = [i-1,i+1,i-4,i+4];
-
-    if (valid.includes(empty)) {
-        [tiles[i], tiles[empty]] = [tiles[empty], tiles[i]];
-        drawPuzzle();
-
-        if (isSolved()) {
-            setTimeout(() => switchScreen("screen1","screen2"), 500);
-            typeText();
+function move(i){
+    let e=tiles.indexOf(null);
+    let valid=[i-1,i+1,i-3,i+3];
+    if(valid.includes(e)){
+        [tiles[i],tiles[e]]=[tiles[e],tiles[i]];
+        draw();
+        if(done()){
+            setTimeout(()=>{
+                switchS(1,2);
+                type();
+            },400);
         }
     }
 }
 
-function isSolved() {
-    for (let i=0;i<15;i++) if (tiles[i]!==i+1) return false;
-    return true;
+function done(){
+    return tiles.every((v,i)=>v===i+1||i===8);
 }
 
-/* shuffle */
-tiles.sort(() => Math.random()-0.5);
-drawPuzzle();
-
-/* 💌 MESSAGE */
-let msg = `Happy 4 Months, My Love ❤️
+/* MESSAGE */
+let msg=`Happy 4 Months, My Love ❤️
 
 From the moment you came into my life,
 everything started to feel a little brighter,
@@ -190,85 +216,64 @@ These past 4 months with you
 have been filled with laughter, love,
 and memories I’ll cherish forever.
 
-You’re not just my girlfriend,
-you’re my happiness, my comfort,
+You’re my happiness, my comfort,
 and my favorite place to be.
-
-No matter what happens,
-I promise to stand by you,
-to care for you, and to love you
-more and more with every passing day.
-
-This is just the beginning of us…
-and I can’t wait for all the moments
-we still have to create together.
 
 I love you ❤️`;
 
 let i=0;
-function typeText(){
+function type(){
     if(i<msg.length){
-        document.getElementById("typed").innerHTML += msg[i];
-        i++;
-        setTimeout(typeText,20);
+        typed.innerHTML+=msg[i++];
+        setTimeout(type,15);
     }
 }
 
-function goQuestion(){
-    switchScreen("screen2","screen3");
-}
+function goQ(){ switchS(2,3); }
 
+/* NO ESCAPE */
+noBtn.onmouseover=noBtn.ontouchstart=()=>{
+    noBtn.style.left=Math.random()*window.innerWidth+"px";
+    noBtn.style.top=Math.random()*window.innerHeight+"px";
+};
+
+/* YES */
 function yes(){
-    switchScreen("screen3","screen4");
+    switchS(3,4);
     fireworks();
 }
 
-/* 😂 NO escapes */
-let no = document.getElementById("noBtn");
-no.addEventListener("touchstart", moveNo);
-no.addEventListener("mouseover", moveNo);
-
-function moveNo(){
-    no.style.left = Math.random()*window.innerWidth+"px";
-    no.style.top = Math.random()*window.innerHeight+"px";
-}
-
-/* 🎆 FIREWORKS */
+/* FIREWORKS */
 function fireworks(){
-    let canvas = document.getElementById("fireworks");
-    let ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    let c=document.getElementById("fireworks");
+    let ctx=c.getContext("2d");
+    c.width=innerWidth;
+    c.height=innerHeight;
 
-    let particles = [];
+    setInterval(()=>{
+        let x=Math.random()*c.width;
+        let y=Math.random()*c.height/2;
 
-    for(let i=0;i<100;i++){
-        particles.push({
-            x: canvas.width/2,
-            y: canvas.height/2,
-            dx: (Math.random()-0.5)*10,
-            dy: (Math.random()-0.5)*10,
-            life: 100
-        });
-    }
+        for(let i=0;i<40;i++){
+            let dx=(Math.random()-0.5)*5;
+            let dy=(Math.random()-0.5)*5;
 
-    function animate(){
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        particles.forEach(p=>{
-            ctx.fillRect(p.x,p.y,3,3);
-            p.x+=p.dx;
-            p.y+=p.dy;
-            p.life--;
-        });
-        requestAnimationFrame(animate);
-    }
-    animate();
+            let life=40;
+
+            function anim(px,py){
+                if(life--<=0)return;
+                ctx.fillRect(px,py,2,2);
+                requestAnimationFrame(()=>anim(px+dx,py+dy));
+            }
+            anim(x,y);
+        }
+    },400);
 }
 
-/* screen switch */
-function switchScreen(a,b){
-    document.getElementById(a).classList.remove("active");
-    document.getElementById(b).classList.add("active");
+/* SWITCH */
+function switchS(a,b){
+    document.getElementById("screen"+a).classList.remove("active");
+    document.getElementById("screen"+b).classList.add("active");
 }
 </script>
 
