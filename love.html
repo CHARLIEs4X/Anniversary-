@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>For My Love ❤️</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: sans-serif;
+    text-align: center;
+    background: black;
+    color: white;
+    overflow: hidden;
+}
+
+#bg {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: url('photo.jpg') center/cover no-repeat;
+    filter: blur(8px) brightness(0.4);
+    z-index: -1;
+}
+
+.screen {
+    display: none;
+    padding: 20px;
+}
+.active { display: block; }
+
+.box {
+    background: rgba(0,0,0,0.6);
+    padding: 20px;
+    border-radius: 20px;
+    max-width: 400px;
+    margin: auto;
+}
+
+/* Puzzle */
+#puzzle {
+    width: 300px;
+    height: 300px;
+    margin: 20px auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+}
+
+.tile {
+    width: 100%;
+    height: 100%;
+    background-image: url('photo.jpg');
+    background-size: 300px 300px;
+    cursor: pointer;
+}
+
+.empty {
+    background: transparent;
+}
+
+/* Buttons */
+button {
+    padding: 10px 20px;
+    margin: 10px;
+    border-radius: 20px;
+    border: none;
+}
+
+#yesBtn { background: #ff4d6d; color: white; }
+#noBtn { position: absolute; }
+
+/* Fireworks */
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="bg"></div>
+<canvas id="fireworks"></canvas>
+
+<audio id="music" loop>
+    <source src="music.mp3">
+</audio>
+
+<!-- 🧩 PUZZLE -->
+<div id="screen1" class="screen active">
+    <div class="box">
+        <h3>Solve this ❤️</h3>
+        <div id="puzzle"></div>
+    </div>
+</div>
+
+<!-- 💌 MESSAGE -->
+<div id="screen2" class="screen">
+    <div class="box">
+        <p id="typed"></p>
+        <button onclick="goQuestion()">Continue ❤️</button>
+    </div>
+</div>
+
+<!-- ❓ QUESTION -->
+<div id="screen3" class="screen">
+    <div class="box">
+        <p>
+        I already know my answer…<br><br>
+        but will you be mine<br>
+        for a long, long time? ❤️
+        </p>
+        <button id="yesBtn" onclick="yes()">YES ❤️</button>
+        <button id="noBtn">NO 😏</button>
+    </div>
+</div>
+
+<!-- 🎉 FINAL -->
+<div id="screen4" class="screen">
+    <div class="box">
+        <h2>You chose me ❤️</h2>
+        <p>Happy 4 months 🫶</p>
+    </div>
+</div>
+
+<script>
+/* 🎵 MUSIC */
+document.body.addEventListener("click", () => {
+    document.getElementById("music").play();
+}, { once: true });
+
+/* 🧩 PUZZLE */
+let puzzle = document.getElementById("puzzle");
+let tiles = [...Array(15).keys()].map(x => x+1);
+tiles.push(null);
+
+function drawPuzzle() {
+    puzzle.innerHTML = "";
+    tiles.forEach((num, i) => {
+        let div = document.createElement("div");
+        div.className = "tile";
+        if (!num) div.classList.add("empty");
+
+        if (num) {
+            let x = (num-1)%4;
+            let y = Math.floor((num-1)/4);
+            div.style.backgroundPosition = `${-x*75}px ${-y*75}px`;
+        }
+
+        div.onclick = () => moveTile(i);
+        puzzle.appendChild(div);
+    });
+}
+
+function moveTile(i) {
+    let empty = tiles.indexOf(null);
+    let valid = [i-1,i+1,i-4,i+4];
+
+    if (valid.includes(empty)) {
+        [tiles[i], tiles[empty]] = [tiles[empty], tiles[i]];
+        drawPuzzle();
+
+        if (isSolved()) {
+            setTimeout(() => switchScreen("screen1","screen2"), 500);
+            typeText();
+        }
+    }
+}
+
+function isSolved() {
+    for (let i=0;i<15;i++) if (tiles[i]!==i+1) return false;
+    return true;
+}
+
+/* shuffle */
+tiles.sort(() => Math.random()-0.5);
+drawPuzzle();
+
+/* 💌 MESSAGE */
+let msg = `Happy 4 Months, My Love ❤️
+
+From the moment you came into my life,
+everything started to feel a little brighter,
+a little warmer, and a lot more meaningful.
+
+These past 4 months with you
+have been filled with laughter, love,
+and memories I’ll cherish forever.
+
+You’re not just my girlfriend,
+you’re my happiness, my comfort,
+and my favorite place to be.
+
+No matter what happens,
+I promise to stand by you,
+to care for you, and to love you
+more and more with every passing day.
+
+This is just the beginning of us…
+and I can’t wait for all the moments
+we still have to create together.
+
+I love you ❤️`;
+
+let i=0;
+function typeText(){
+    if(i<msg.length){
+        document.getElementById("typed").innerHTML += msg[i];
+        i++;
+        setTimeout(typeText,20);
+    }
+}
+
+function goQuestion(){
+    switchScreen("screen2","screen3");
+}
+
+function yes(){
+    switchScreen("screen3","screen4");
+    fireworks();
+}
+
+/* 😂 NO escapes */
+let no = document.getElementById("noBtn");
+no.addEventListener("touchstart", moveNo);
+no.addEventListener("mouseover", moveNo);
+
+function moveNo(){
+    no.style.left = Math.random()*window.innerWidth+"px";
+    no.style.top = Math.random()*window.innerHeight+"px";
+}
+
+/* 🎆 FIREWORKS */
+function fireworks(){
+    let canvas = document.getElementById("fireworks");
+    let ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particles = [];
+
+    for(let i=0;i<100;i++){
+        particles.push({
+            x: canvas.width/2,
+            y: canvas.height/2,
+            dx: (Math.random()-0.5)*10,
+            dy: (Math.random()-0.5)*10,
+            life: 100
+        });
+    }
+
+    function animate(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        particles.forEach(p=>{
+            ctx.fillRect(p.x,p.y,3,3);
+            p.x+=p.dx;
+            p.y+=p.dy;
+            p.life--;
+        });
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+/* screen switch */
+function switchScreen(a,b){
+    document.getElementById(a).classList.remove("active");
+    document.getElementById(b).classList.add("active");
+}
+</script>
+
+</body>
+</html>
